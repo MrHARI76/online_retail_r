@@ -1,18 +1,15 @@
-library(caret)
+library(cluster)
 library(readr)
 
-model <- readRDS("outputs/model.rds")
-data  <- read_csv("data/processed/retail_cleaned.csv")
+data <- read_csv("data/processed/cleaned_online_retail.csv")
+scaled_data <- scale(data[, -1])
 
-predictions <- predict(model, data)
+km <- kmeans(scaled_data, centers = 4, nstart = 25)
 
-rmse <- RMSE(predictions, data$TotalPrice)
-mae  <- MAE(predictions, data$TotalPrice)
+sil <- silhouette(km$cluster, dist(scaled_data))
+avg_silhouette <- mean(sil[, 3])
 
-results <- paste(
-  "RMSE:", rmse,
-  "\nMAE:", mae
+writeLines(
+  paste("Average Silhouette Score:", avg_silhouette),
+  "outputs/metrics.txt"
 )
-
-writeLines(results, "outputs/metrics.txt")
-print(results)

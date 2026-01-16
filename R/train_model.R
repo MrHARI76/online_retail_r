@@ -1,18 +1,14 @@
-library(caret)
 library(readr)
 
-data <- read_csv("data/processed/retail_cleaned.csv")
+data <- read_csv("data/processed/cleaned_online_retail.csv")
+
+scaled_data <- scale(data[, -1])  # remove CustomerID
 
 set.seed(123)
 
-split <- createDataPartition(data$TotalPrice, p = 0.8, list = FALSE)
-train <- data[split, ]
-test  <- data[-split, ]
+kmeans_model <- kmeans(scaled_data, centers = 4, nstart = 25)
 
-model <- train(
-  TotalPrice ~ Quantity + UnitPrice,
-  data = train,
-  method = "lm"
-)
+data$Cluster <- kmeans_model$cluster
 
-saveRDS(model, "outputs/model.rds")
+write_csv(data, "outputs/model_output.csv")
+

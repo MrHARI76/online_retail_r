@@ -1,27 +1,22 @@
 library(dplyr)
 library(readxl)
-library(lubridate)
 library(readr)
 
 data <- read_excel("data/raw/Online Retail.xlsx")
 
-clean_data <- data %>%
+customer_features <- data %>%
   filter(
     !is.na(CustomerID),
     Quantity > 0,
     UnitPrice > 0
   ) %>%
-  mutate(
-    InvoiceDate = as.POSIXct(InvoiceDate),
-    TotalPrice = Quantity * UnitPrice
-  ) %>%
-  select(
-    InvoiceNo,
-    Quantity,
-    UnitPrice,
-    TotalPrice,
-    CustomerID,
-    Country
+  mutate(TotalPrice = Quantity * UnitPrice) %>%
+  group_by(CustomerID) %>%
+  summarise(
+    TotalSpend = sum(TotalPrice),
+    TotalQuantity = sum(Quantity),
+    Frequency = n()
   )
 
-write_csv(clean_data, "data/processed/retail_cleaned.csv")
+write_csv(customer_features, "data/processed/cleaned_online_retail.csv")
+
